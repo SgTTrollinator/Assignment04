@@ -16,6 +16,7 @@ namespace Assignment4.Entities
                 .AddJsonFile("appsettings.json")
                 .Build();
 
+            //indsæt connectionstring her, her skal vi så lave vores migrations som bliver til vores database ud fra de lister vi har i KanbanContext
             var connectionString = configuration.GetConnectionString("Comics");
 
             var optionsBuilder = new DbContextOptionsBuilder<KanbanContext>()
@@ -34,34 +35,23 @@ namespace Assignment4.Entities
 
 
             //Users
-            var jeppe = new User { Id = 1, Name = "Jeppe", Email = "korg@itu.dk" };
-            var frida = new User { Id = 2, Name = "Frida", Email = "frir@itu.dk" };
-            var ahmed = new User { Id = 3, Name = "Ahmed", Email = "ahga@itu.dk" };
+            var jeppe = new User { Name = "Jeppe", Email = "korg@itu.dk" };
+            var frida = new User { Name = "Frida", Email = "frir@itu.dk" };
+            var ahmed = new User { Name = "Ahmed", Email = "ahga@itu.dk" };
 
             //Tags
-            var economyTag = new Tag { Id = 1, Name = "Economy" };
-            var personalTag = new Tag { Id = 2, Name = "Personal" };
-            var developmentTag = new Tag { Id = 3, Name = "Development" };
-            var testTag = new Tag { Id = 4, Name = "Test" };
-            var programmingTag = new Tag { Id = 5, Name = "Programming" };
+            var economyTag = new Tag { Name = "Economy" };
+            var personalTag = new Tag { Name = "Personal" };
+            var developmentTag = new Tag { Name = "Development" };
+            var testTag = new Tag { Name = "Test" };
+            var programmingTag = new Tag { Name = "Programming" };
 
             //Tasks
-            var task1 = new Task { Id = 1, Title = "Get better economy in the firm", AssignedTo = jeppe, Description = "We loose a lot of money, lets fix it", State = State.New, Tags = new[] { economyTag, programmingTag } };
-            var task2 = new Task { Id = 2, Title = "Work on personal issues", AssignedTo = jeppe, Description = "Jeppes mental health is not good, lets fix it", State = State.Active, Tags = new[] { personalTag } };
-            var task3 = new Task { Id = 3, Title = "Development of new food app", AssignedTo = frida, Description = "Build an app that 3D print food", State = State.Resolved, Tags = new[] { economyTag, developmentTag, programmingTag } };
-            var task4 = new Task { Id = 4, Title = "Test Fridas new food app", AssignedTo = ahmed, Description = "Make sure Fridas food app makes delicous food", State = State.Active, Tags = new[] { personalTag, testTag } };
-            var task5 = new Task { Id = 5, Title = "Program this assignment", AssignedTo = ahmed, Description = "Make the impossible happend", State = State.Active, Tags = new[] { personalTag, programmingTag } };
-
-            //References
-            economyTag.Tasks = new[] { task1, task3 };
-            personalTag.Tasks = new[] { task2, task4, task5 };
-            developmentTag.Tasks = new[] { task3 };
-            testTag.Tasks = new[] { task4 };
-            programmingTag.Tasks = new[] { task1, task3, task5 };
-
-            jeppe.Tasks = new[] { task1, task2 };
-            frida.Tasks = new[] { task3 };
-            ahmed.Tasks = new[] { task4, task5 };
+            var task1 = new Task { Title = "Get better economy in the firm", AssignedTo = jeppe, Description = "We loose a lot of money, lets fix it", State = State.New, Tags = new[] { economyTag, programmingTag } };
+            var task2 = new Task { Title = "Work on personal issues", AssignedTo = jeppe, Description = "Jeppes mental health is not good, lets fix it", State = State.Active, Tags = new[] { personalTag } };
+            var task3 = new Task { Title = "Development of new food app", AssignedTo = frida, Description = "Build an app that 3D print food", State = State.Resolved, Tags = new[] { economyTag, developmentTag, programmingTag } };
+            var task4 = new Task { Title = "Test Fridas new food app", AssignedTo = ahmed, Description = "Make sure Fridas food app makes delicous food", State = State.Active, Tags = new[] { personalTag, testTag } };
+            var task5 = new Task { Title = "Program this assignment", AssignedTo = ahmed, Description = "Make the impossible happend", State = State.Active, Tags = new[] { personalTag, programmingTag } };
 
             context.Tasks.AddRange(
                 task1, task2, task3, task4, task5
