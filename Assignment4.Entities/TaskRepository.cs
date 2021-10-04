@@ -1,11 +1,28 @@
-using System;
-using Microsoft.EntityFrameworkCore;
 using Assignment4.Core;
+using System.IO;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace Assignment4.Entities
 {
-    public class TaskRepository
+    public class TaskRepository : IDesignTimeDbContextFactory<KanbanContext>
     {
+        public KanbanContext CreateDbContext(string[] args)
+        {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddUserSecrets<KanbanContext>()
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+            var connectionString = configuration.GetConnectionString("Comics");
+
+            var optionsBuilder = new DbContextOptionsBuilder<KanbanContext>()
+                .UseSqlServer(connectionString);
+
+            return new KanbanContext(optionsBuilder.Options);
+        }
         public static void Seed(KanbanContext context)
         {
             context.Database.ExecuteSqlRaw("DELETE dbo.Tag");
