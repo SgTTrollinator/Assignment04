@@ -31,7 +31,6 @@ namespace Assignment4.Entities
 
             context = new KanbanContext(optionsBuilder.Options);
             return context;
-
         }
         public static void Seed(KanbanContext context)
         {
