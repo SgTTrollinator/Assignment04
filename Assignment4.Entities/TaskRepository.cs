@@ -1,3 +1,4 @@
+using System;
 using Assignment4.Core;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
@@ -5,10 +6,11 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Data.SqlClient;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Assignment4.Entities
 {
-    public class TaskRepository : IDesignTimeDbContextFactory<KanbanContext>, ITaskRepository
+    public class TaskRepository : IDesignTimeDbContextFactory<KanbanContext>, ITaskRepository, IDisposable
     {
 
         KanbanContext context;
@@ -66,28 +68,79 @@ namespace Assignment4.Entities
             context.SaveChanges();
         }
 
-        IReadOnlyCollection<TaskDTO> All()
+        public IReadOnlyCollection<TaskDTO> All()
         {
-            //LINQ
+            throw new NotImplementedException();
         }
-        int Create(TaskDTO task)
+        public int Create(TaskDTO task)
         {
-            //LINQ
-        }
-
-        void Delete(int taskId)
-        {
-            //LINQ
-        }
-
-        TaskDetailsDTO FindById(int id)
-        {
-            //LINQ
+            var taskElement = new Task
+            {
+                Title = task.Title,
+                State = task.State
+            };
+            context.Tasks.Add(taskElement);
+            context.SaveChanges();
+            return taskElement.Id;
         }
 
-        void Update(TaskDTO task)
+        public void Delete(int taskId)
         {
-            //LINQ
+            var taskElement = (
+                from task in context.Tasks
+                where task.Id == taskId
+                select task
+            );
+            context.Remove(taskElement);
+            context.SaveChanges();
+        }
+
+        public TaskDetailsDTO FindById(int id)
+        {
+            var taskResult = (from task in context.Tasks
+                              join user in context.Users
+                              on task.AssignedTo.Id equals user.Id
+                              where task.Id == id
+                              select new TaskDetailsDTO
+                              {
+                                  Id = task.Id,
+                                  Title = task.Title,
+                                  Description = task.Description,
+                                  AssignedToId = user.Id,
+                                  AssignedToName = user.Name,
+                                  AssignedToEmail = user.Email,
+                                  //find ud af noget smart med tags
+                                  //Tags = (IEnumerable<string>)task.Tags.SelectMany(tag => tag.Name),
+                                  State = task.State,
+                              }).Single();
+
+            return taskResult;
+        }
+
+        public void Update(TaskDTO task)
+        {
+            var taskElement = (from t in context.Tasks
+                               where t.Id == task.Id
+                               select t).Single();
+
+            var userElement = (from u in context.Users
+                               where u.Id == taskElement.AssignedTo.Id
+                               select u).Single();
+
+            taskElement.Title = task.Title;
+            if (userElement != null)
+            {
+                taskElement.AssignedTo = userElement;
+            }
+            taskElement.Description = task.Description;
+            taskElement.State = task.State;
+            //tags maybe
+            context.SaveChanges();
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
         }
     }
 }
