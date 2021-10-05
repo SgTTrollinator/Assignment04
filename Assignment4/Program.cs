@@ -7,7 +7,13 @@ namespace Assignment4
     {
         static void Main(string[] args)
         {
-            var repo = new TaskRepository();
+            var contextFactory = new KanbanContextFactory();
+            var context = contextFactory.CreateDbContext(null);
+            var repo = new TaskRepository(context);
+
+            TaskRepository.Seed(context);
+
+
         }
     }
 }

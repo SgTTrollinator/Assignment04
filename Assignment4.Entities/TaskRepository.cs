@@ -10,27 +10,13 @@ using System.Linq;
 
 namespace Assignment4.Entities
 {
-    public class TaskRepository : IDesignTimeDbContextFactory<KanbanContext>, ITaskRepository, IDisposable
+    public class TaskRepository : ITaskRepository, IDisposable
     {
-
         KanbanContext context;
 
-        public KanbanContext CreateDbContext(string[] args)
+        public TaskRepository(KanbanContext context)
         {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddUserSecrets<KanbanContext>()
-                .AddJsonFile("appsettings.json")
-                .Build();
-
-            //indsæt connectionstring her, her skal vi så lave vores migrations som bliver til vores database ud fra de lister vi har i KanbanContext
-            var connectionString = configuration.GetConnectionString("Comics");
-
-            var optionsBuilder = new DbContextOptionsBuilder<KanbanContext>()
-                .UseSqlServer(connectionString);
-
-            context = new KanbanContext(optionsBuilder.Options);
-            return context;
+            this.context = context;
         }
         public static void Seed(KanbanContext context)
         {
