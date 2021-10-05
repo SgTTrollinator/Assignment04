@@ -3,11 +3,16 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Data.SqlClient;
+using System.Collections.Generic;
 
 namespace Assignment4.Entities
 {
-    public class TaskRepository : IDesignTimeDbContextFactory<KanbanContext>
+    public class TaskRepository : IDesignTimeDbContextFactory<KanbanContext>, ITaskRepository
     {
+
+        KanbanContext context;
+
         public KanbanContext CreateDbContext(string[] args)
         {
             var configuration = new ConfigurationBuilder()
@@ -22,7 +27,9 @@ namespace Assignment4.Entities
             var optionsBuilder = new DbContextOptionsBuilder<KanbanContext>()
                 .UseSqlServer(connectionString);
 
-            return new KanbanContext(optionsBuilder.Options);
+            context = new KanbanContext(optionsBuilder.Options);
+            return context;
+
         }
         public static void Seed(KanbanContext context)
         {
@@ -57,6 +64,30 @@ namespace Assignment4.Entities
                 task1, task2, task3, task4, task5
             );
             context.SaveChanges();
+        }
+
+        IReadOnlyCollection<TaskDTO> All()
+        {
+            //LINQ
+        }
+        int Create(TaskDTO task)
+        {
+            //LINQ
+        }
+
+        void Delete(int taskId)
+        {
+            //LINQ
+        }
+
+        TaskDetailsDTO FindById(int id)
+        {
+            //LINQ
+        }
+
+        void Update(TaskDTO task)
+        {
+            //LINQ
         }
     }
 }
