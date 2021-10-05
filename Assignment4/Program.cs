@@ -1,6 +1,8 @@
 ﻿using System;
 using Assignment4.Entities;
 using Assignment4.Core;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace Assignment4
 {
@@ -11,18 +13,20 @@ namespace Assignment4
             var contextFactory = new KanbanContextFactory();
             var context = contextFactory.CreateDbContext(null);
             var repo = new TaskRepository(context);
+            repo.Delete(6);
+            
+            //Console.WriteLine(repo.All().ToString());
 
-            TaskRepository.Seed(context);
-
-            var task = new TaskDTO
+            /*var task = new TaskDTO
             {
-                Title = "hej",
+                Id = 6,
+                Title = "god davs",
                 State = State.New
             };
-
-            repo.Create(task);
-
-
+            
+            
+            
+            repo.Update(task);*/
         }
     }
 }
