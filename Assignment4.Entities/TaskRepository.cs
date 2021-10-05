@@ -1,13 +1,20 @@
+using System;
 using Assignment4.Core;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Data.SqlClient;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Assignment4.Entities
 {
-    public class TaskRepository : IDesignTimeDbContextFactory<KanbanContext>
+    public class TaskRepository : IDesignTimeDbContextFactory<KanbanContext>, ITaskRepository, IDisposable
     {
+
+        KanbanContext context;
+
         public KanbanContext CreateDbContext(string[] args)
         {
             var configuration = new ConfigurationBuilder()
@@ -22,7 +29,8 @@ namespace Assignment4.Entities
             var optionsBuilder = new DbContextOptionsBuilder<KanbanContext>()
                 .UseSqlServer(connectionString);
 
-            return new KanbanContext(optionsBuilder.Options);
+            context = new KanbanContext(optionsBuilder.Options);
+            return context;
         }
         public static void Seed(KanbanContext context)
         {
@@ -57,6 +65,94 @@ namespace Assignment4.Entities
                 task1, task2, task3, task4, task5
             );
             context.SaveChanges();
+        }
+
+        public IReadOnlyCollection<TaskDTO> All()
+        {
+            var collection = new List<TaskDTO>();
+            foreach (var task in context.Tasks)
+            {
+                collection.Add(new TaskDTO
+                {
+                    Id = task.Id,
+                    Title = task.Title,
+                    Description = task.Description,
+                    AssignedToId = task.AssignedTo.Id,
+                    Tags = (IReadOnlyCollection<string>)task.Tags.SelectMany(tag => tag.Name),
+                    State = task.State
+                });
+            }
+            return collection;
+        }
+        public int Create(TaskDTO task)
+        {
+            var taskElement = new Task
+            {
+                Title = task.Title,
+                State = task.State
+            };
+            context.Tasks.Add(taskElement);
+            context.SaveChanges();
+            return taskElement.Id;
+        }
+
+        public void Delete(int taskId)
+        {
+            var taskElement = (
+                from task in context.Tasks
+                where task.Id == taskId
+                select task
+            );
+            context.Remove(taskElement);
+            context.SaveChanges();
+        }
+
+        public TaskDetailsDTO FindById(int id)
+        {
+            var taskResult = (from task in context.Tasks
+                              join user in context.Users
+                              on task.AssignedTo.Id equals user.Id
+                              where task.Id == id
+                              select new TaskDetailsDTO
+                              {
+                                  Id = task.Id,
+                                  Title = task.Title,
+                                  Description = task.Description,
+                                  AssignedToId = user.Id,
+                                  AssignedToName = user.Name,
+                                  AssignedToEmail = user.Email,
+                                  //find ud af noget smart med tags
+                                  //Tags = (IEnumerable<string>)task.Tags.SelectMany(tag => tag.Name),
+                                  State = task.State,
+                              }).Single();
+
+            return taskResult;
+        }
+
+        public void Update(TaskDTO task)
+        {
+            var taskElement = (from t in context.Tasks
+                               where t.Id == task.Id
+                               select t).Single();
+
+            var userElement = (from u in context.Users
+                               where u.Id == taskElement.AssignedTo.Id
+                               select u).Single();
+
+            taskElement.Title = task.Title;
+            if (userElement != null)
+            {
+                taskElement.AssignedTo = userElement;
+            }
+            taskElement.Description = task.Description;
+            taskElement.State = task.State;
+            //tags maybe
+            context.SaveChanges();
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
         }
     }
 }
