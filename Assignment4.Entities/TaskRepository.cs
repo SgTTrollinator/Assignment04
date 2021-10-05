@@ -70,7 +70,20 @@ namespace Assignment4.Entities
 
         public IReadOnlyCollection<TaskDTO> All()
         {
-            throw new NotImplementedException();
+            var collection = new List<TaskDTO>();
+            foreach (var task in context.Tasks)
+            {
+                collection.Add(new TaskDTO
+                {
+                    Id = task.Id,
+                    Title = task.Title,
+                    Description = task.Description,
+                    AssignedToId = task.AssignedTo.Id,
+                    Tags = (IReadOnlyCollection<string>)task.Tags.SelectMany(tag => tag.Name),
+                    State = task.State
+                });
+            }
+            return collection;
         }
         public int Create(TaskDTO task)
         {
