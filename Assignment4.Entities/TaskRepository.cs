@@ -20,13 +20,15 @@ namespace Assignment4.Entities
         }
         public static void Seed(KanbanContext context)
         {
-            context.Database.ExecuteSqlRaw("DELETE dbo.Tag");
-            context.Database.ExecuteSqlRaw("DELETE dbo.Task");
-            context.Database.ExecuteSqlRaw("DELETE dbo.User");
-            context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Tag', RESEED, 0)");
-            context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Task', RESEED, 0)");
-            context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.User', RESEED, 0)");
-
+            context.Database.ExecuteSqlRaw("DELETE dbo.Tags");
+            context.Database.ExecuteSqlRaw("DELETE dbo.Tasks");
+            context.Database.ExecuteSqlRaw("DELETE dbo.Users");
+            context.Database.ExecuteSqlRaw("DELETE dbo.TagTask");
+           /* context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Tags', RESEED, 0)");
+            context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Tasks', RESEED, 0)");
+            context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Users', RESEED, 0)");
+            context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.TagTask', RESEED, 0)");
+*/
 
             //Users
             var jeppe = new User { Name = "Jeppe", Email = "korg@itu.dk" };
