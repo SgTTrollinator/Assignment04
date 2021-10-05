@@ -20,7 +20,7 @@ namespace Assignment4.Entities
         }
         public static void Seed(KanbanContext context)
         {
-            context.Database.ExecuteSqlRaw("DELETE dbo.Tag");
+            context.Database.ExecuteSqlRaw("DELETE dbo.Tags");
             context.Database.ExecuteSqlRaw("DELETE dbo.Task");
             context.Database.ExecuteSqlRaw("DELETE dbo.User");
             context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Tag', RESEED, 0)");

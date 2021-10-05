@@ -1,5 +1,6 @@
 ﻿using System;
 using Assignment4.Entities;
+using Assignment4.Core;
 
 namespace Assignment4
 {
@@ -12,6 +13,14 @@ namespace Assignment4
             var repo = new TaskRepository(context);
 
             TaskRepository.Seed(context);
+
+            var task = new TaskDTO
+            {
+                Title = "hej",
+                State = State.New
+            };
+
+            repo.Create(task);
 
 
         }
