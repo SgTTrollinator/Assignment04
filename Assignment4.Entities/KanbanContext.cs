@@ -2,6 +2,7 @@ using System;
 using Assignment4.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Assignment4.Core;
 
 namespace Assignment4.Entities
 {
