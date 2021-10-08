@@ -1,8 +1,6 @@
-using System;
 using Assignment4.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Assignment4.Core;
 
 namespace Assignment4.Entities
 {
@@ -15,7 +13,6 @@ namespace Assignment4.Entities
         public KanbanContext(DbContextOptions<KanbanContext> options) : base(options)
         {
         }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder
