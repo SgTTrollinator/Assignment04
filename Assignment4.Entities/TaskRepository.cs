@@ -6,17 +6,18 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Data.SqlClient;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Assignment4.Entities
 {
     public class TaskRepository : ITaskRepository, IDisposable
     {
-        KanbanContext context;
+        KanbanContext _context;
 
         public TaskRepository(KanbanContext context)
         {
-            this.context = context;
+            _context = context;
         }
         public static void Seed(KanbanContext context)
         {
@@ -24,11 +25,11 @@ namespace Assignment4.Entities
             context.Database.ExecuteSqlRaw("DELETE dbo.Tasks");
             context.Database.ExecuteSqlRaw("DELETE dbo.Users");
             context.Database.ExecuteSqlRaw("DELETE dbo.TagTask");
-           /* context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Tags', RESEED, 0)");
+           // context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Tags', RESEED, 0)");
             context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Tasks', RESEED, 0)");
-            context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Users', RESEED, 0)");
-            context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.TagTask', RESEED, 0)");
-*/
+           // context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Users', RESEED, 0)");
+           // context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.TagTask', RESEED, 0)");
+
 
             //Users
             var jeppe = new User { Name = "Jeppe", Email = "korg@itu.dk" };
@@ -55,93 +56,96 @@ namespace Assignment4.Entities
             context.SaveChanges();
         }
 
-        public IReadOnlyCollection<TaskDTO> All()
+        public (Response Response, int TaskId) Create(TaskCreateDTO task)
         {
-            var collection = new List<TaskDTO>();
-            foreach (var task in context.Tasks)
-            {
-                collection.Add(new TaskDTO
-                {
-                    Id = task.Id,
-                    Title = task.Title,
-                    Description = task.Description,
-                    AssignedToId = task.AssignedTo.Id,
-                    Tags = (IReadOnlyCollection<string>)task.Tags.SelectMany(tag => tag.Name),
-                    State = task.State
-                });
-            }
-            return collection;
-        }
-        public int Create(TaskDTO task)
-        {
-            var taskElement = new Task
-            {
+            Response response = Response.Created;
+            var entity = new Task{
                 Title = task.Title,
-                State = task.State
+                AssignedTo = _context.Users.SingleOrDefault(user => user.Id == task.AssignedToId),
+                Description = task.Description,
+                State = State.New,
+                Tags = GetTags(task.Tags).ToList(),
             };
-            context.Tasks.Add(taskElement);
-            context.SaveChanges();
-            return taskElement.Id;
+            if(entity.AssignedTo == null){
+                return (Response.BadRequest, null);
+            }   
+            _context.Tasks.Add(entity);
+            _context.SaveChanges();
+
+            return(response, entity.Id);
         }
 
-        public void Delete(int taskId)
+        public Response Delete(int taskId)
         {
-            var taskElement = (
-                from task in context.Tasks
-                where task.Id == taskId
-                select task
-            );
-            context.Remove(taskElement);
-            context.SaveChanges();
-        }
+            var entity = _context.Tasks.Find(taskId);
 
-        public TaskDetailsDTO FindById(int id)
-        {
-            var taskResult = (from task in context.Tasks
-                              join user in context.Users
-                              on task.AssignedTo.Id equals user.Id
-                              where task.Id == id
-                              select new TaskDetailsDTO
-                              {
-                                  Id = task.Id,
-                                  Title = task.Title,
-                                  Description = task.Description,
-                                  AssignedToId = user.Id,
-                                  AssignedToName = user.Name,
-                                  AssignedToEmail = user.Email,
-                                  //find ud af noget smart med tags
-                                  //Tags = (IEnumerable<string>)task.Tags.SelectMany(tag => tag.Name),
-                                  State = task.State,
-                              }).Single();
-
-            return taskResult;
-        }
-
-        public void Update(TaskDTO task)
-        {
-            var taskElement = (from t in context.Tasks
-                               where t.Id == task.Id
-                               select t).Single();
-
-            var userElement = (from u in context.Users
-                               where u.Id == taskElement.AssignedTo.Id
-                               select u).Single();
-
-            taskElement.Title = task.Title;
-            if (userElement != null)
+            if(entity == null)
             {
-                taskElement.AssignedTo = userElement;
+                return Response.NotFound;
             }
-            taskElement.Description = task.Description;
-            taskElement.State = task.State;
-            //tags maybe
-            context.SaveChanges();
+            if(entity.State == State.Resolved || entity.State == State.Closed || entity.State == State.Removed)
+            {
+                return Response.Conflict;
+            }else{
+                if(entity.State == State.Active)
+                {
+                    entity.State = State.Removed;
+                } else{
+                    _context.Tasks.Remove(entity);
+                    _context.SaveChanges();
+                }
+                return Response.Deleted;
+            }
+        }
+
+        public TaskDetailsDTO Read(int taskId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IReadOnlyCollection<TaskDTO> ReadAll()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IReadOnlyCollection<TaskDTO> ReadAllByState(State state)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IReadOnlyCollection<TaskDTO> ReadAllByTag(string tag)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IReadOnlyCollection<TaskDTO> ReadAllByUser(int userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IReadOnlyCollection<TaskDTO> ReadAllRemoved()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Response Update(TaskUpdateDTO task)
+        {
+            throw new NotImplementedException();
         }
 
         public void Dispose()
         {
             throw new NotImplementedException();
         }
+
+        public IEnumerable<Tag> GetTags(IEnumerable<string> tags)
+        {
+            foreach (var tag in tags)
+            {
+                yield return new Tag{Name = tag};
+            }
+        }
     }
+
 }
 
