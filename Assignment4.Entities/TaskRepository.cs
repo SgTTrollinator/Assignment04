@@ -1,12 +1,7 @@
 using System;
 using Assignment4.Core;
-using System.IO;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Data.SqlClient;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Assignment4.Entities
@@ -25,10 +20,10 @@ namespace Assignment4.Entities
             context.Database.ExecuteSqlRaw("DELETE dbo.Tasks");
             context.Database.ExecuteSqlRaw("DELETE dbo.Users");
             context.Database.ExecuteSqlRaw("DELETE dbo.TagTask");
-           // context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Tags', RESEED, 0)");
+            // context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Tags', RESEED, 0)");
             context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Tasks', RESEED, 0)");
-           // context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Users', RESEED, 0)");
-           // context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.TagTask', RESEED, 0)");
+            // context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Users', RESEED, 0)");
+            // context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.TagTask', RESEED, 0)");
 
 
             //Users
@@ -58,39 +53,46 @@ namespace Assignment4.Entities
 
         public (Response Response, int TaskId) Create(TaskCreateDTO task)
         {
-            Response response = Response.Created;
-            var entity = new Task{
+            var entity = new Task
+            {
                 Title = task.Title,
                 AssignedTo = _context.Users.SingleOrDefault(user => user.Id == task.AssignedToId),
                 Description = task.Description,
                 State = State.New,
                 Tags = GetTags(task.Tags).ToList(),
+                Created = DateTime.UtcNow,
+                StatusUpdated = DateTime.UtcNow
             };
-            if(entity.AssignedTo == null){
-                return (Response.BadRequest, null);
-            }   
+            if (entity.AssignedTo == null)
+            {
+                return (Response.BadRequest, 0);
+            }
             _context.Tasks.Add(entity);
             _context.SaveChanges();
 
-            return(response, entity.Id);
+            return (Response.Created, entity.Id);
         }
 
         public Response Delete(int taskId)
         {
             var entity = _context.Tasks.Find(taskId);
 
-            if(entity == null)
+            if (entity == null)
             {
                 return Response.NotFound;
             }
-            if(entity.State == State.Resolved || entity.State == State.Closed || entity.State == State.Removed)
+            if (entity.State == State.Resolved || entity.State == State.Closed || entity.State == State.Removed)
             {
                 return Response.Conflict;
-            }else{
-                if(entity.State == State.Active)
+            }
+            else
+            {
+                if (entity.State == State.Active)
                 {
                     entity.State = State.Removed;
-                } else{
+                }
+                else
+                {
                     _context.Tasks.Remove(entity);
                     _context.SaveChanges();
                 }
@@ -100,52 +102,111 @@ namespace Assignment4.Entities
 
         public TaskDetailsDTO Read(int taskId)
         {
-            throw new NotImplementedException();
+            return _context.Tasks.Where(task => task.Id == taskId).Select(task => new TaskDetailsDTO(
+                           task.Id,
+                           task.Title,
+                           task.Description,
+                           task.Created,
+                           task.AssignedTo.Name,
+                           GetTagNames(task.Tags).ToList().AsReadOnly(),
+                           task.State,
+                           task.StatusUpdated
+            )).SingleOrDefault();
         }
 
         public IReadOnlyCollection<TaskDTO> ReadAll()
         {
-            throw new NotImplementedException();
+            return _context.Tasks.Select(task => new TaskDTO(
+                task.Id,
+                task.Title,
+                task.AssignedTo.Name,
+                GetTagNames(task.Tags).ToList(),
+                task.State)).ToList().AsReadOnly();
         }
 
         public IReadOnlyCollection<TaskDTO> ReadAllByState(State state)
         {
-            throw new NotImplementedException();
+            return _context.Tasks.Where(task => task.State == state).Select(task => new TaskDTO(
+                task.Id,
+                task.Title,
+                task.AssignedTo.Name,
+                GetTagNames(task.Tags).ToList(),
+                task.State)).ToList().AsReadOnly();
         }
 
         public IReadOnlyCollection<TaskDTO> ReadAllByTag(string tag)
         {
-            throw new NotImplementedException();
+            return _context.Tasks.Where(task => GetTagNames(task.Tags).ToList().Contains(tag)).Select(task => new TaskDTO(
+                task.Id,
+                task.Title,
+                task.AssignedTo.Name,
+                GetTagNames(task.Tags).ToList(),
+                task.State)).ToList().AsReadOnly();
         }
 
         public IReadOnlyCollection<TaskDTO> ReadAllByUser(int userId)
         {
-            throw new NotImplementedException();
+            return _context.Tasks.Where(task => task.AssignedTo.Id == userId).Select(task => new TaskDTO(
+                task.Id,
+                task.Title,
+                task.AssignedTo.Name,
+                GetTagNames(task.Tags).ToList(),
+                task.State)).ToList().AsReadOnly();
         }
 
         public IReadOnlyCollection<TaskDTO> ReadAllRemoved()
         {
-            throw new NotImplementedException();
+            return _context.Tasks.Where(task => task.State == State.Removed).Select(task => new TaskDTO(
+                task.Id,
+                task.Title,
+                task.AssignedTo.Name,
+                GetTagNames(task.Tags).ToList(),
+                task.State)).ToList().AsReadOnly();
         }
 
         public Response Update(TaskUpdateDTO task)
         {
-            throw new NotImplementedException();
+            var entity = _context.Tasks.Find(task.Id);
+            if (entity == null)
+            {
+                return Response.NotFound;
+            }
+            if (task.AssignedToId != null && _context.Users.Where(user => user.Id == task.AssignedToId).SingleOrDefault() == null)
+            {
+                return Response.BadRequest;
+            }
+            entity.Title = task.Title;
+            entity.AssignedTo = _context.Users.Where(user => user.Id == task.AssignedToId).SingleOrDefault();
+            entity.Description = task.Description;
+            entity.State = task.State;
+            entity.Tags = GetTags(task.Tags).ToList();
+            entity.StatusUpdated = DateTime.UtcNow;
+            _context.SaveChanges();
+            return Response.Updated;
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            _context.Dispose();
         }
 
-        public IEnumerable<Tag> GetTags(IEnumerable<string> tags)
+        private IEnumerable<Tag> GetTags(IEnumerable<string> tags)
         {
             foreach (var tag in tags)
             {
-                yield return new Tag{Name = tag};
+                yield return new Tag { Name = tag };
+            }
+        }
+
+        private IEnumerable<string> GetTagNames(IEnumerable<Tag> tags)
+        {
+            foreach (var tag in tags)
+            {
+                yield return tag.Name;
             }
         }
     }
-
 }
+
+
 
