@@ -39,10 +39,10 @@ namespace Assignment4.Entities
             var programmingTag = new Tag { Name = "Programming" };
 
             //Tasks
-            var task1 = new Task { Title = "Get better economy in the firm", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow , AssignedTo = jeppe, Description = "We loose a lot of money, lets fix it", State = State.New, Tags = new[] { economyTag, programmingTag } };
-            var task2 = new Task { Title = "Work on personal issues", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow , AssignedTo = jeppe, Description = "Jeppes mental health is not good, lets fix it", State = State.Active, Tags = new[] { personalTag } };
-            var task3 = new Task { Title = "Development of new food app", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow , AssignedTo = frida, Description = "Build an app that 3D print food", State = State.Resolved, Tags = new[] { economyTag, developmentTag, programmingTag } };
-            var task4 = new Task { Title = "Test Fridas new food app", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow , AssignedTo = ahmed, Description = "Make sure Fridas food app makes delicous food", State = State.Active, Tags = new[] { personalTag, testTag } };
+            var task1 = new Task { Title = "Get better economy in the firm", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow, AssignedTo = jeppe, Description = "We loose a lot of money, lets fix it", State = State.New, Tags = new[] { economyTag, programmingTag } };
+            var task2 = new Task { Title = "Work on personal issues", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow, AssignedTo = jeppe, Description = "Jeppes mental health is not good, lets fix it", State = State.Active, Tags = new[] { personalTag } };
+            var task3 = new Task { Title = "Development of new food app", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow, AssignedTo = frida, Description = "Build an app that 3D print food", State = State.Resolved, Tags = new[] { economyTag, developmentTag, programmingTag } };
+            var task4 = new Task { Title = "Test Fridas new food app", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow, AssignedTo = ahmed, Description = "Make sure Fridas food app makes delicous food", State = State.Active, Tags = new[] { personalTag, testTag } };
             var task5 = new Task { Title = "Program this assignment", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow, AssignedTo = ahmed, Description = "Make the impossible happend", State = State.Active, Tags = new[] { personalTag, programmingTag } };
 
             context.Tasks.AddRange(
@@ -59,10 +59,13 @@ namespace Assignment4.Entities
                 AssignedTo = _context.Users.SingleOrDefault(user => user.Id == task.AssignedToId),
                 Description = task.Description,
                 State = State.New,
-                //Tags = GetTags(task.Tags).ToList(),
                 Created = DateTime.UtcNow,
                 StatusUpdated = DateTime.UtcNow
             };
+            if (task.Tags != null)
+            {
+                entity.Tags = GetTags(task.Tags).ToList();
+            }
             if (task.AssignedToId != null && entity.AssignedTo == null)
             {
                 return (Response.BadRequest, 0);
@@ -176,15 +179,15 @@ namespace Assignment4.Entities
             {
                 return Response.BadRequest;
             }
-            if(task.Title != null)
+            if (task.Title != null)
             {
                 entity.Title = task.Title;
             }
             entity.AssignedTo = _context.Users.Where(user => user.Id == task.AssignedToId).SingleOrDefault();
             entity.Description = task.Description;
             entity.State = task.State;
-            
-            if(task.Tags != null )
+
+            if (task.Tags != null)
             {
                 entity.Tags = GetTags(task.Tags).ToHashSet().ToList();
             }
