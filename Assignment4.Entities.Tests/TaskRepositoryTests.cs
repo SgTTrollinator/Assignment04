@@ -157,12 +157,12 @@ namespace Assignment4.Entities.Tests
             );
             _context.SaveChanges();
 
-            var characters = _repo.ReadAll();
+            var tasks = _repo.ReadAll();
 
-            Assert.Collection(characters,
-                c => Assert.Equal(new TaskDTO(1, "Test1", "Jeppe", characters.ElementAt(0).Tags, State.New), c),
-                c => Assert.Equal(new TaskDTO(2, "Test2", "Jeppe", characters.ElementAt(1).Tags, State.Active), c),
-                c => Assert.Equal(new TaskDTO(3, "Test3", "Jeppe", characters.ElementAt(2).Tags, State.Resolved), c)
+            Assert.Collection(tasks,
+                t => Assert.Equal(new TaskDTO(1, "Test1", "Jeppe", tasks.ElementAt(0).Tags, State.New), t),
+                t => Assert.Equal(new TaskDTO(2, "Test2", "Jeppe", tasks.ElementAt(1).Tags, State.Active), t),
+                t => Assert.Equal(new TaskDTO(3, "Test3", "Jeppe", tasks.ElementAt(2).Tags, State.Resolved), t)
             );
         }
 

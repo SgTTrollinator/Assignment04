@@ -28,9 +28,12 @@ namespace Assignment4.Entities
         public Response Delete(int tagId, bool force = false)
         {
             var entity = _context.Tags.Where(tag => tag.Id == tagId).SingleOrDefault();
-            if (entity.Tasks.Count() > 0 && !force)
+            if (entity.Tasks != null)
             {
-                return Response.Conflict;
+                if (entity.Tasks.Count() > 0 && !force)
+                {
+                    return Response.Conflict;
+                }
             }
             _context.Tags.Remove(entity);
             _context.SaveChanges();
@@ -55,11 +58,12 @@ namespace Assignment4.Entities
         public Response Update(TagUpdateDTO tag)
         {
             var entity = _context.Tags.Find(tag.Name);
-            if (_context.Tags.Find(tag.Name) != null)
+            if (entity == null)
             {
-                return Response.BadRequest;
+                return Response.NotFound;
             }
             entity.Name = tag.Name;
+            entity.Id = tag.Id;
             _context.SaveChanges();
             return Response.Updated;
         }
