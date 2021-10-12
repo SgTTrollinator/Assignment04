@@ -17,7 +17,7 @@ namespace Assignment4
                 .AddJsonFile("appsettings.json")
                 .Build();
 
-            var connectionString = configuration.GetConnectionString("kanban");
+            var connectionString = configuration.GetConnectionString("kanbanboard");
 
             var optionsBuilder = new DbContextOptionsBuilder<KanbanContext>()
                 .UseSqlServer(connectionString);

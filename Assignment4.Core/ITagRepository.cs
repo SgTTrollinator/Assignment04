@@ -8,6 +8,6 @@ namespace Assignment4.Core
         IReadOnlyCollection<TagDTO> ReadAll();
         TagDTO Read(int tagId);
         Response Update(TagUpdateDTO tag);
-        Response Delete(int tagId, bool force = false);
+        Response Delete(int tagId, bool force = false); 
     }
 }

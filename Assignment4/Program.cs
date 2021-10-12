@@ -13,7 +13,22 @@ namespace Assignment4
             var contextFactory = new KanbanContextFactory();
             var context = contextFactory.CreateDbContext(null);
             var repo = new TaskRepository(context);
+            
+            var task = new TaskUpdateDTO{
+                Id = 1,
+                State = State.Active
+            };
+
+
+            //
+            //repo.Update(task);            
+            Console.WriteLine(repo.Delete(1));
+            //var hej = repo.Create(task);
+
+            
+            
         
+
         }
     }
 }

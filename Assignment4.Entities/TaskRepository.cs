@@ -39,11 +39,11 @@ namespace Assignment4.Entities
             var programmingTag = new Tag { Name = "Programming" };
 
             //Tasks
-            var task1 = new Task { Title = "Get better economy in the firm", AssignedTo = jeppe, Description = "We loose a lot of money, lets fix it", State = State.New, Tags = new[] { economyTag, programmingTag } };
-            var task2 = new Task { Title = "Work on personal issues", AssignedTo = jeppe, Description = "Jeppes mental health is not good, lets fix it", State = State.Active, Tags = new[] { personalTag } };
-            var task3 = new Task { Title = "Development of new food app", AssignedTo = frida, Description = "Build an app that 3D print food", State = State.Resolved, Tags = new[] { economyTag, developmentTag, programmingTag } };
-            var task4 = new Task { Title = "Test Fridas new food app", AssignedTo = ahmed, Description = "Make sure Fridas food app makes delicous food", State = State.Active, Tags = new[] { personalTag, testTag } };
-            var task5 = new Task { Title = "Program this assignment", AssignedTo = ahmed, Description = "Make the impossible happend", State = State.Active, Tags = new[] { personalTag, programmingTag } };
+            var task1 = new Task { Title = "Get better economy in the firm", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow , AssignedTo = jeppe, Description = "We loose a lot of money, lets fix it", State = State.New, Tags = new[] { economyTag, programmingTag } };
+            var task2 = new Task { Title = "Work on personal issues", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow , AssignedTo = jeppe, Description = "Jeppes mental health is not good, lets fix it", State = State.Active, Tags = new[] { personalTag } };
+            var task3 = new Task { Title = "Development of new food app", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow , AssignedTo = frida, Description = "Build an app that 3D print food", State = State.Resolved, Tags = new[] { economyTag, developmentTag, programmingTag } };
+            var task4 = new Task { Title = "Test Fridas new food app", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow , AssignedTo = ahmed, Description = "Make sure Fridas food app makes delicous food", State = State.Active, Tags = new[] { personalTag, testTag } };
+            var task5 = new Task { Title = "Program this assignment", Created = DateTime.UtcNow, StatusUpdated = DateTime.UtcNow, AssignedTo = ahmed, Description = "Make the impossible happend", State = State.Active, Tags = new[] { personalTag, programmingTag } };
 
             context.Tasks.AddRange(
                 task1, task2, task3, task4, task5
@@ -59,11 +59,11 @@ namespace Assignment4.Entities
                 AssignedTo = _context.Users.SingleOrDefault(user => user.Id == task.AssignedToId),
                 Description = task.Description,
                 State = State.New,
-                Tags = GetTags(task.Tags).ToList(),
+                //Tags = GetTags(task.Tags).ToList(),
                 Created = DateTime.UtcNow,
                 StatusUpdated = DateTime.UtcNow
             };
-            if (entity.AssignedTo == null)
+            if (task.AssignedToId != null && entity.AssignedTo == null)
             {
                 return (Response.BadRequest, 0);
             }
@@ -90,6 +90,7 @@ namespace Assignment4.Entities
                 if (entity.State == State.Active)
                 {
                     entity.State = State.Removed;
+                    _context.SaveChanges();
                 }
                 else
                 {
@@ -136,7 +137,7 @@ namespace Assignment4.Entities
 
         public IReadOnlyCollection<TaskDTO> ReadAllByTag(string tag)
         {
-            return _context.Tasks.Where(task => GetTagNames(task.Tags).ToList().Contains(tag)).Select(task => new TaskDTO(
+            return _context.Tasks.Where(task => GetTagNames(task.Tags).Contains(tag)).Select(task => new TaskDTO(
                 task.Id,
                 task.Title,
                 task.AssignedTo.Name,
@@ -175,11 +176,18 @@ namespace Assignment4.Entities
             {
                 return Response.BadRequest;
             }
-            entity.Title = task.Title;
+            if(task.Title != null)
+            {
+                entity.Title = task.Title;
+            }
             entity.AssignedTo = _context.Users.Where(user => user.Id == task.AssignedToId).SingleOrDefault();
             entity.Description = task.Description;
             entity.State = task.State;
-            entity.Tags = GetTags(task.Tags).ToList();
+            
+            if(task.Tags != null )
+            {
+                entity.Tags = GetTags(task.Tags).ToHashSet().ToList();
+            }
             entity.StatusUpdated = DateTime.UtcNow;
             _context.SaveChanges();
             return Response.Updated;
@@ -190,7 +198,7 @@ namespace Assignment4.Entities
             _context.Dispose();
         }
 
-        private IEnumerable<Tag> GetTags(IEnumerable<string> tags)
+        private static IEnumerable<Tag> GetTags(IEnumerable<string> tags)
         {
             foreach (var tag in tags)
             {
@@ -198,7 +206,7 @@ namespace Assignment4.Entities
             }
         }
 
-        private IEnumerable<string> GetTagNames(IEnumerable<Tag> tags)
+        private static IEnumerable<string> GetTagNames(IEnumerable<Tag> tags)
         {
             foreach (var tag in tags)
             {
